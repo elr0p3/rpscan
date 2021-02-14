@@ -1,5 +1,5 @@
 [package]
-name = "openport_scanner"
+name = "openportscanner"
 version = "0.1.0"
 authors = ["r0p3_laptop <ropefalora@gmail.com>"]
 edition = "2018"
