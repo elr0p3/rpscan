@@ -1,0 +1,38 @@
+name: sniff_port
+version: "0.1.0"
+author: r0p3 <mail>
+about: Sniff open ports
+args:
+    - address:
+        short: a
+        long: address
+        takes_value: true
+        value_name: IPv4_ADDRESS
+        required: true
+        # last: true
+        index: 1
+        help: Target's IPv4 address to scan
+        # hidden_short_hekp: true
+    - threads:
+        short: t
+        long: threads
+        takes_value: true
+        value_name: NUM_THREADS
+        default_value: "1"
+        help: Number of threads to use
+    - ports:
+        short: p
+        long: ports
+        takes_value: true
+        value_name: PORTS
+        default_value: "-"
+        # use_delimeter: true
+        help: Ports to scan
+# subcommand:
+    # - address:
+        # about: Set address
+        # args:
+            # - addr:
+                # short: a
+                # takes_value: true
+                # help: Set address

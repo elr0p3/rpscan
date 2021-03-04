@@ -1,21 +1,19 @@
-use std::env;
-use std::process;
-
-mod input_port_data;
-use input_port_data::data::{self, PortData};
-
+use clap::{App, load_yaml};
+#[allow(unused_imports)]
+use serde_json;
 
 fn main() {
-    let mut args: Vec<String> = env::args().collect();
-    args.remove(0);
-    let data: PortData = match PortData::new(&args) {
-        Ok(dt) => dt,
-        Err(data::F_HELP) => process::exit(0),
-        Err(err) => {
-            eprintln!("{}", err);
-            process::exit(1);
-        }
-    };
+    let yaml = load_yaml!("../files/input_params.yml");
+    let app = App::from_yaml(yaml)
+        .arg(
+            clap::Arg::with_name("nuevo")
+                .takes_value(true)
+                .last(true))
+        .get_matches();
+    println!("Address: {}", app.value_of("address").unwrap());
+    println!("Threads: {}", app.value_of("threads").unwrap());
+    println!("Ports: {}", app.value_of("ports").unwrap());
 
-    println!("{:?}", data);
+    // println!("addr: {:?}", app.subcommand_matches("address").unwrap());
+    println!("MARIKONG");
 }
