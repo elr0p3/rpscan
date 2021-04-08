@@ -1,0 +1,49 @@
+{
+    "1": {
+        "name": "tcpmux",
+        "tcp": "yes",
+        "udp": "assigned",
+        "description": "TCP multiplexor",
+        "sctp": false
+    },
+    "5": {
+        "name": "rje",
+        "tcp": "assigned",
+        "udp": "assigned",
+        "description": "Remote Job Entry",
+        "sctp": false
+    },
+    "7": {
+        "name": "echo",
+        "tcp": "yes",
+        "udp": "yes",
+        "description": "echoes remote calls",
+        "sctp": false
+    },
+    "9": {
+        "name": "discard",
+        "tcp": "yes",
+        "udp": "yes",
+        "description": "removes any data it receives, serves for connection evaluation",
+        "sctp": false
+    },
+    "11": {},
+    "13": {},
+    "17": {},
+    "18": {},
+    "19": {},
+    "20": {},
+    "21": {},
+    "22": {},
+    "23": {},
+    "25": {},
+    "37": {},
+    "39": {},
+    "42": {},
+    "43": {},
+    "49": {},
+    "50": {},
+    "53": {},
+    "63": {},
+    "66": {},
+}
