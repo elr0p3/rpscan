@@ -1,5 +1,4 @@
 use std::{
-    fmt,
     net::{
         IpAddr,
         Ipv4Addr,
@@ -10,7 +9,7 @@ use std::{
     collections::HashSet,
     thread,
     sync::{
-        Arc, Mutex,
+        Arc,
         mpsc::{
             self,
             Sender,
@@ -95,30 +94,23 @@ impl Scanner {
     pub fn scan (&mut self) {
         let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
         let sc = self.clone();
-        // let sc = Arc::new(Mutex::new(sc));
         let sc = Arc::new(sc);
-        let mut handles = vec![];
 
         for i in 0..self.threads {
             let tx = tx.clone();
             let sc_clone = Arc::clone(&sc);
 
-            // if self.port_list.len() == 0 {
-                let handle = thread::spawn(move|| {
-                    // let sc_lock = sc_clone.lock().unwrap();
-                    // Scanner::connect_host_range(
-                        // tx, sc_lock.address, sc_lock.low_port, sc_lock.high_port, sc_lock.threads, i
-                    // );
+            if self.port_list.len() == 0 {
+                thread::spawn(move|| {
                     Scanner::connect_host_range(
                         tx, sc_clone.address, sc_clone.low_port, sc_clone.high_port, sc_clone.threads, i
                     );
                 });
-                handles.push(handle);
-            // } else {
-                // thread::spawn(move|| {
-                    // Scanner::connect_host_list(tx);
-                // });
-            // }
+            } else {
+                thread::spawn(move|| {
+                    Scanner::connect_host_list(tx);
+                });
+            }
         }
 
         drop(tx);
