@@ -143,7 +143,7 @@ impl Scanner {
                     Err(_) => {}
             };
 
-            if (port + threads as u16) > end {
+            if end - port <= threads as u16 {
                 break;
             }
 
