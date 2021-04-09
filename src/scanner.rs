@@ -19,6 +19,9 @@ use std::{
     time::Duration,
 };
 
+
+const LOCALHOST: &'static str = "localhost";
+
 #[derive(Debug, Clone)]
 pub struct Scanner {
     address: Ipv4Addr,
@@ -36,9 +39,13 @@ impl Scanner {
 
     /// New instance  
     pub fn new (address: &str, mut threads: u8, ports: &[&str]) -> Result<Self, &'static str> {
-        let address = match Ipv4Addr::from_str(address) {
-            Ok(a) => a,
-            Err(_) => return Err("invalid IP address syntax"),
+        let address = if address == LOCALHOST {
+            Ipv4Addr::LOCALHOST
+        } else {
+            match Ipv4Addr::from_str(address) {
+                Ok(a) => a,
+                Err(_) => return Err("invalid IP address syntax"),
+            }
         };
         let mut low_port: u16 = 0;
         let mut high_port: u16 = 0;
@@ -46,29 +53,10 @@ impl Scanner {
         let ports_len = ports.len();
 
         if ports_len == 1 && ports[0].contains("-") {
-            let ports_splited = ports[0].split("-").collect::<Vec<_>>();
-            if ports_splited.len() != 2 {
-                return Err("bad use of range ports");
-            } else {
-                low_port = ports_splited[0].parse().unwrap();
-                high_port = ports_splited[1].parse().unwrap();
-                if low_port > high_port {
-                    high_port ^= low_port;
-                    low_port ^= high_port;
-                    high_port ^= low_port;
-                }
-            }
-            let result = high_port - low_port;
-            threads = if (result as u8) < threads { result as u8 } else { threads };
-        } else {
-            for port in ports {
-                let port: u16 = port.parse().unwrap();
-                port_list.insert(port);
-            }
-            threads = if (ports_len as u8) < threads { ports_len as u8 } else { threads };
-        }
+            if let Err(err) = Self::range_ports(&mut threads, &mut low_port, &mut high_port, ports) {
+                return Err(err);
+            };
 
-        if port_list.len() == 0 {
             Ok(Self{
                 address,
                 threads,
@@ -77,7 +65,13 @@ impl Scanner {
                 port_list: HashSet::new(),
                 open_ports: HashSet::new(),
             })
-        } else {
+        } else if ports_len > 1 {
+            for port in ports {
+                let port: u16 = port.parse().unwrap();
+                port_list.insert(port);
+            }
+            threads = if (ports_len as u8) < threads { ports_len as u8 } else { threads };
+
             Ok(Self{
                 address,
                 threads,
@@ -86,7 +80,27 @@ impl Scanner {
                 port_list,
                 open_ports: HashSet::new(),
             })
+        } else {
+            Err("invalid PORT arguments")
         }
+    }
+
+    fn range_ports (threads: &mut u8, lp: &mut u16, hp: &mut u16, ports: &[&str]) -> Result<(), &'static str> {
+        let ports_splited = ports[0].split("-").collect::<Vec<_>>();
+        if ports_splited.len() != 2 {
+            return Err("bad use of range ports");
+        } else {
+            *lp = ports_splited[0].parse().unwrap();
+            *hp = ports_splited[1].parse().unwrap();
+            if lp > hp {
+                *hp ^= *lp;
+                *lp ^= *hp;
+                *hp ^= *lp;
+            }
+        }
+        let result = *hp - *lp;
+        *threads = if (result as u8) < *threads { result as u8 } else { *threads };
+        Ok(())
     }
 
 
@@ -138,7 +152,6 @@ impl Scanner {
             if end - port <= threads as u16 {
                 break;
             }
-
             port += threads as u16;
         }
     }
