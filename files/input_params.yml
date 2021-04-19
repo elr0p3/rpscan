@@ -26,6 +26,7 @@ args:
         takes_value: true
         value_name: PORTS
         default_value: "1-65535"
+        allow_hyphen_values: true
         use_delimiter: true
         value_delimiter: ","
         help: Ports to scan
