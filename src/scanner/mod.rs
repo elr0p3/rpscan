@@ -83,6 +83,10 @@ impl Scanner {
             threads = cores as u8;
         }
 
+        // if ports_to_scan == 0 {
+            // return NoPortsToScan;
+        // }
+
         Ok(Scanner{
             address,
             threads,
@@ -133,17 +137,18 @@ impl Scanner {
     // /// Scan method
     // pub fn scan (&mut self) {
         // let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
-        // let sc = self.clone();
-        // let sc = Arc::new(sc);
+        // // let sc = self.clone();
+        // // let sc = Arc::new(sc);
 
-        // if self.port_list.len() == 0 {
-            // Self::scan_range(sc, tx);
-        // } else {
-            // Self::scan_list(sc, tx);
-        // }
+
+        // // for rp in self.range_ports.iter() {
+            // // let ctx = tx.clone();
+            // // self.scan_range(rp, ctx);
+        // // }
+
 
         // // drop(tx);
-        // let open_ports: HashSet<u16> = HashSet::new();
+        // let mut open_ports: HashSet<u16> = HashSet::new();
         // for port in rx {
             // open_ports.insert(port);
         // }
@@ -151,13 +156,16 @@ impl Scanner {
         // println!("Open Ports for {}:\n{:?}", self.address, open_ports);
     // }
 
-    // fn scan_range (sc: Arc<Self>, tx: Sender<u16>) {
-        // for i in 0..sc.threads {
+    // fn scan_range (&self, rp: &RangePorts, tx: Sender<u16>) {
+        // for i in 0..self.threads {
             // let tx = tx.clone();
-            // let sc_clone = Arc::clone(&sc);
+            // let self_clone = self.clone();
+            // let rp_clone = rp.clone();
             // thread::spawn(move|| {
                 // Scanner::connect_host_range(
-                    // tx, sc_clone.address, sc_clone.low_port, sc_clone.high_port, sc_clone.threads, i
+                    // tx, self_clone.address, 
+                    // rp_clone.get_low(), rp_clone.get_high(),
+                    // self_clone.threads, i
                 // );
             // });
         // }
