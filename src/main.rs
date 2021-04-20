@@ -8,7 +8,7 @@ use scanner::Scanner;
 // use scanner::scerror::ScannerError;
 
 fn main() {
-    let yaml = load_yaml!("../files/input_params.yml");
+    let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml).get_matches();
     println!("Address: {}", app.value_of("address").unwrap());
     println!("Threads: {}", app.value_of("threads").unwrap());
