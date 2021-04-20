@@ -1,0 +1,50 @@
+~/programming/rust/projects/OpenPortScanner main*
+❯ cargo r -- -p1,2,3,4,5,6,7,8,9,11,15-60,99-222 -t6 0.0.0.0
+   Compiling rpscan v0.1.0 (/home/r0p3/programming/rust/projects/OpenPortScanner)
+error[E0597]: `test` does not live long enough
+   --> src/scanner/mod.rs:169:24
+    |
+169 |           let test_ref = &test;
+    |                          ^^^^^ borrowed value does not live long enough
+...
+175 | /             pool.execute(move|| {
+176 | |                 for is in indiv_slice {
+177 | |                     tx.send(is).unwrap();
+178 | |                     println!("indv {} - {} - {:?}", i, is, test_ref);
+179 | |                 }
+180 | |             });
+    | |______________- argument requires that `test` is borrowed for `'static`
+...
+200 |       }
+    |       - `test` dropped here while still borrowed
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0597`.
+error: could not compile `rpscan`
+
+To learn more, run the command again with --verbose.
+
+~/programming/rust/projects/OpenPortScanner main*
+❯ cargo r -- -p1,2,3,4,5,6,7,8,9,11,15-60,99-222 -t6 0.0.0.0
+   Compiling rpscan v0.1.0 (/home/r0p3/programming/rust/projects/OpenPortScanner)
+error[E0759]: `self` has an anonymous lifetime `'_` but it needs to satisfy a `'static` lifetime requirement
+   --> src/scanner/mod.rs:168:21
+    |
+163 |     pub fn scan (&self) {
+    |                  ----- this data with an anonymous lifetime `'_`...
+...
+168 |         let test = &self.indiv_ports[..];
+    |                     ----------------^^^^
+    |                     |
+    |                     ...is captured here...
+...
+174 |             pool.execute(move|| {
+    |                  ------- ...and is required to live as long as `'static` here
+
+error: aborting due to previous error
+
+For more information about this error, try `rustc --explain E0759`.
+error: could not compile `rpscan`
+
+To learn more, run the command again with --verbose.

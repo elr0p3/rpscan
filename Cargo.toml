@@ -1,5 +1,5 @@
 [package]
-name = "rscan"
+name = "rpscan"
 version = "0.1.0"
 authors = ["r0p3_laptop <ropefalora@gmail.com>"]
 edition = "2018"
@@ -11,3 +11,4 @@ clap = {version = "~2.27.0", features = ["yaml"]}
 serde_json = "1.0"
 num_cpus = "1.13.0"
 itertools = "0.10.0"
+threadpool = "1.8.1"

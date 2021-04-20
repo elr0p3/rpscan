@@ -19,11 +19,11 @@ fn main() {
 
 
     let address = app.value_of("address").unwrap();
-    let threads = app.value_of("threads").unwrap().parse::<u8>().unwrap_or((num_cpus::get()/2) as u8);
+    let threads = app.value_of("threads").unwrap().parse::<u8>().unwrap_or(num_cpus::get_physical() as u8);
     let ports = app.values_of("ports").unwrap().collect::<Vec<&str>>();
 
-    let scan = Scanner::new(address, threads, &ports).unwrap();
-    println!("{:#?}", scan);
+    let scanner = Scanner::new(address, threads, &ports).unwrap();
+    println!("{:#?}", scanner);
 
-    // scan.scan();
+    scanner.scan();
 }

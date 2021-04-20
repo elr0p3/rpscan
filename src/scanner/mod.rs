@@ -1,6 +1,7 @@
 extern crate num_cpus;
 extern crate itertools;
 use itertools::Itertools;
+use threadpool::ThreadPool;
 
 pub mod range_port;
 use range_port::RangePorts;
@@ -38,11 +39,17 @@ const LOCALHOST: &'static str = "localhost";
 #[derive(Debug, Clone)]
 pub struct Scanner {
     address: Ipv4Addr,
-    threads: u8,
+    total_threads: u8,
 
     range_ports: Vec<RangePorts>,
     indiv_ports: Vec<u16>,
+
     ports_to_scan: u16,
+    port_chunk: u16,
+
+    indiv_jobs: u16,
+    range_jobs: u16,
+    total_jobs: u16,
 }
 
 
@@ -63,7 +70,7 @@ impl Scanner {
             .filter_map(|p| p.parse().ok())
             .collect();
         
-        let range_ports: Vec<RangePorts> =
+        let mut range_ports: Vec<RangePorts> =
             Self::parse_range_ports(ports, &mut indiv_hash);
 
         let indiv_ports: Vec<u16> =
@@ -87,12 +94,29 @@ impl Scanner {
             // return NoPortsToScan;
         // }
 
+        // Calculate number of threads to use for each port segment
+        let mut total_jobs: u16 = 0;
+        let port_chunk = ports_to_scan as f32 / threads as f32;
+        for rng_prt in range_ports.iter_mut() {
+            let t = (rng_prt.get_num() as f32 / port_chunk).ceil() as u8;
+            rng_prt.set_threads_to_use(t);
+            total_jobs += t as u16;
+        }
+        let indiv_jobs = (indiv_ports.len() as f32 / port_chunk).ceil() as u16;
+        let range_jobs: u16 = total_jobs;
+        total_jobs += indiv_jobs;
+
+
         Ok(Scanner{
             address,
-            threads,
+            total_threads: threads,
             range_ports,
             indiv_ports,
             ports_to_scan,
+            port_chunk: port_chunk.ceil() as u16,
+            indiv_jobs,
+            range_jobs,
+            total_jobs,
         })
     }
 
@@ -134,27 +158,75 @@ impl Scanner {
     }
 
 
-    // /// Scan method
-    // pub fn scan (&mut self) {
-        // let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
-        // // let sc = self.clone();
-        // // let sc = Arc::new(sc);
+    /// Scan method
+    pub fn scan (&self) {
+        let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
+        let n_workers = self.total_threads as usize;
+        // let n_jobs = self.total_jobs;
+        let pool = ThreadPool::new(n_workers);
+        // let mut position: u16 = 0;
+        let self_ref = Arc::new(self.clone());
+
+        // Individual ports section
+        for i in 0..self.indiv_jobs {
+            let tx = tx.clone();
+            let indiv_slice = self.divide_indiv_ports(i);
+            let self_ref = Arc::clone(&self_ref);
+            pool.execute(move|| {
+                self_ref.scan_indiv(&indiv_slice, tx);
+                // println!("indv {} - {}", i, is);
+            });
+        }
+
+        // Range ports section
+        for i in 0..self.range_jobs {
+            let tx = tx.clone();
+            pool.execute(move|| {
+                tx.send(i).unwrap();
+                // println!("jobs {}", i);
+            });
+        }
 
 
-        // // for rp in self.range_ports.iter() {
-            // // let ctx = tx.clone();
-            // // self.scan_range(rp, ctx);
-        // // }
+        drop(tx);
+        let mut open_ports: HashSet<u16> = HashSet::new();
+        for port in rx {
+            open_ports.insert(port);
+        }
 
+        println!("Open Ports for {}:\n{:?}", self.address, open_ports);
+    }
 
-        // // drop(tx);
-        // let mut open_ports: HashSet<u16> = HashSet::new();
-        // for port in rx {
-            // open_ports.insert(port);
-        // }
+    fn divide_indiv_ports (&self, iteration: u16) -> Vec<u16> {
+        let pc: u16 = self.port_chunk;
+        let actual = (pc * iteration) as usize;
 
-        // println!("Open Ports for {}:\n{:?}", self.address, open_ports);
-    // }
+         if iteration == self.indiv_jobs - 1 {  // Last iteration
+            let tmp = Vec::from(&self.indiv_ports[actual..]);
+            println!("LAST   --- {:?}", tmp);
+            tmp
+
+        } else {                                // Middle iteration
+            let next = (pc * (iteration + 1)) as usize;
+            let tmp = Vec::from(&self.indiv_ports[actual..next]);
+            println!("MIDDLE --- {:?}", tmp);
+            tmp
+        }
+    }
+
+    fn scan_indiv (&self, port_list: &[u16], tx: Sender<u16>) {
+        for port in port_list {
+            match TcpStream::connect_timeout(
+                &SocketAddr::new(IpAddr::V4(self.address), *port), Duration::from_millis(10)
+                ) {
+                    Ok(_) => {
+                        println!("- {}", *port);
+                        tx.send(*port).unwrap();
+                    },
+                    Err(_) => {},
+            }
+        }
+    }
 
     // fn scan_range (&self, rp: &RangePorts, tx: Sender<u16>) {
         // for i in 0..self.threads {
@@ -295,60 +367,3 @@ mod scanner_tests {
     }
 
 }
-
-
-/*
- * let mut range_ports: Vec<RangePorts> = Vec::new();
-        let mut indvl_ports: HashSet<u16> = HashSet::new();
-        let mut to_intro_rng = true;
-        let mut to_intro_indv = true;
-        for p in ports {
-            if p.contains(SEP) {
-                let rng_prt = RangePorts::from_str(p)?;
-                if rng_prt.same_pair_port() {
-                    for rp in range_ports.iter_mut() {
-                        if rp.contains(rng_prt.get_low()) {
-                            to_intro_indv = false;
-                            break;
-                        }
-                    }
-                    if to_intro_indv {
-                        indvl_ports.insert(rng_prt.get_low());
-                    }
-                } else {
-                    for rp in range_ports.iter_mut() {
-                        if rp.can_merge(&rng_prt) {
-                            rp.change_range_ports(&rng_prt);
-                            to_intro_rng = false;
-                            break;
-                        }
-                    }
-                    if to_intro_rng {
-                        range_ports.push(rng_prt);
-                    }
-                    to_intro_rng = true;
-                }
-            }
-        }
-*/
-        // let mut range_ports: Vec<RangePorts> = vec![];
-        // let mut introduce = true;
-        // let tmp_rp: Vec<&&str> = ports.into_iter().filter(|p| p.parse::<u16>().is_err()).collect();
-        // for p in tmp_rp {
-            // let rng_prt = RangePorts::from_str(*p)?;
-            // if rng_prt.same_pair_port() {
-                // indiv_hash.insert(rng_prt.get_low());
-                // continue;
-            // }
-            // for rp in range_ports.iter_mut() {
-                // if rp.can_merge(&rng_prt) {
-                    // rp.change_range_ports(&rng_prt);
-                    // introduce = false;
-                    // break;
-                // }
-            // }
-            // if introduce {
-                // range_ports.push(rng_prt);
-            // }
-            // introduce = true;
-        // }

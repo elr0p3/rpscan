@@ -1,0 +1,119 @@
+// src/scanner/mod.rs
+
+
+/*
+ * let mut range_ports: Vec<RangePorts> = Vec::new();
+        let mut indvl_ports: HashSet<u16> = HashSet::new();
+        let mut to_intro_rng = true;
+        let mut to_intro_indv = true;
+        for p in ports {
+            if p.contains(SEP) {
+                let rng_prt = RangePorts::from_str(p)?;
+                if rng_prt.same_pair_port() {
+                    for rp in range_ports.iter_mut() {
+                        if rp.contains(rng_prt.get_low()) {
+                            to_intro_indv = false;
+                            break;
+                        }
+                    }
+                    if to_intro_indv {
+                        indvl_ports.insert(rng_prt.get_low());
+                    }
+                } else {
+                    for rp in range_ports.iter_mut() {
+                        if rp.can_merge(&rng_prt) {
+                            rp.change_range_ports(&rng_prt);
+                            to_intro_rng = false;
+                            break;
+                        }
+                    }
+                    if to_intro_rng {
+                        range_ports.push(rng_prt);
+                    }
+                    to_intro_rng = true;
+                }
+            }
+        }
+*/
+        // let mut range_ports: Vec<RangePorts> = vec![];
+        // let mut introduce = true;
+        // let tmp_rp: Vec<&&str> = ports.into_iter().filter(|p| p.parse::<u16>().is_err()).collect();
+        // for p in tmp_rp {
+            // let rng_prt = RangePorts::from_str(*p)?;
+            // if rng_prt.same_pair_port() {
+                // indiv_hash.insert(rng_prt.get_low());
+                // continue;
+            // }
+            // for rp in range_ports.iter_mut() {
+                // if rp.can_merge(&rng_prt) {
+                    // rp.change_range_ports(&rng_prt);
+                    // introduce = false;
+                    // break;
+                // }
+            // }
+            // if introduce {
+                // range_ports.push(rng_prt);
+            // }
+            // introduce = true;
+        // }
+
+/*
+    fn divide_indiv_ports (&self, iteration: u16) -> Vec<u16> {
+        let pc: u16 = self.port_chunk;
+        // let pos_slice = &self.indiv_ports[*position as usize..];
+
+        if iteration == 0 && self.indiv_ports.len() < pc as usize { // First iteration, small slice
+            let tmp = Vec::from(&self.indiv_ports[..]);
+            println!("FIRST SMALL --- {:?}", tmp);
+            // *position += pos_slice.len() as u16;
+            tmp
+
+        // } else if *position == 0 {                              // First iteration, big slice
+            // let tmp = Vec::from(&self.indiv_ports[..pc as usize]);
+            // // *position += pc;
+            // println!("FIRST BIG   --- {:?}", tmp);
+            // tmp
+
+        } else if iteration == self.indiv_jobs - 1 {                // Last iteration
+            let tmp = Vec::from(&self.indiv_ports[(pc * iteration) as usize..]);
+            println!("LAST        --- {:?}", tmp);
+            tmp
+
+        } else {                                                    // Middle or First big iteration
+            let tmp = Vec::from(&self.indiv_ports[(pc * iteration) as usize..(pc * (iteration + 1)) as usize]);
+            println!("MIDDLE|BIG  --- {:?}", tmp);
+            // *position += pc;
+            tmp
+        }
+    }
+*/
+
+/*
+    fn divide_indiv_ports (&self, position: &mut u16, iteration: u16) -> Vec<u16> {
+        let pc: u16 = self.port_chunk;
+        let pos_slice = &self.indiv_ports[*position as usize..];
+
+        if *position == 0 && pos_slice.len() < pc as usize {    // First iteration, small slice
+            let tmp = Vec::from(&self.indiv_ports[..]);
+            println!("FIRST SMALL --- {:?}", tmp);
+            *position += pos_slice.len() as u16;
+            tmp
+
+        } else if *position == 0 {                              // First iteration, big slice
+            let tmp = Vec::from(&self.indiv_ports[..pc as usize]);
+            *position += pc;
+            println!("FIRST BIG   --- {:?}", tmp);
+            tmp
+
+        } else if iteration == self.indiv_jobs - 1 {            // Last iteration
+            let tmp = Vec::from(pos_slice);
+            println!("LAST        --- {:?}", tmp);
+            tmp
+
+        } else {                                                // Middle iteration
+            let tmp = Vec::from(&self.indiv_ports[*position as usize..(pc + *position) as usize]);
+            println!("MIDDLE      --- {:?}", tmp);
+            tmp
+        }
+    }
+*/

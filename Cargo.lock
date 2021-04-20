@@ -86,13 +86,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "rscan"
+name = "rpscan"
 version = "0.1.0"
 dependencies = [
  "clap",
  "itertools",
  "num_cpus",
  "serde_json",
+ "threadpool",
 ]
 
 [[package]]
@@ -131,6 +132,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0b59b6b4b44d867f1370ef1bd91bfb262bf07bf0ae65c202ea2fbc16153b693"
 dependencies = [
  "unicode-width",
+]
+
+[[package]]
+name = "threadpool"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d050e60b33d41c19108b32cea32164033a9013fe3b46cbd4457559bfbf77afaa"
+dependencies = [
+ "num_cpus",
 ]
 
 [[package]]

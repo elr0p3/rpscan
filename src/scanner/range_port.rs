@@ -5,6 +5,7 @@ use std::{
 
 
 pub const SEP: &'static str = "-";
+const DEF_THREADS: u8 = 1;
 
 
 #[derive(Debug, Clone, Copy)]
@@ -12,7 +13,7 @@ pub struct RangePorts {
     low: u16,
     high: u16,
     num: u16,
-    merged: bool,
+    threads_to_use: u8,
 }
 
 
@@ -61,7 +62,7 @@ impl FromStr for RangePorts {
             low: vnum[0],
             high: vnum[1],
             num: vnum[1] - vnum[0] + 1,
-            merged: false,
+            threads_to_use: DEF_THREADS,
         })
     }
 }
@@ -80,7 +81,7 @@ impl RangePorts {
             low,
             high,
             num: high - low + 1,
-            merged: false,
+            threads_to_use: DEF_THREADS,
         }
     }
 
@@ -97,17 +98,19 @@ impl RangePorts {
         self.num
     }
 
-    pub fn is_merged (&self) -> bool {
-        self.merged
-    }
-
-    pub fn merge (&mut self) {
-        self.merged = true;
-    }
-
     pub fn same_pair_port (&self) -> bool {
         self.low == self.high
     }
+
+    #[allow(dead_code)]
+    pub fn get_threads_to_use (&self) -> u8 {
+        self.threads_to_use
+    }
+
+    pub fn set_threads_to_use (&mut self, t: u8) {
+        self.threads_to_use = t;
+    }
+
 
     pub fn contains (&self, n: u16) -> bool {
         // println!("contains - {} - {}", n, self.low <= n && n <= self.high);
