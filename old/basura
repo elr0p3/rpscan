@@ -117,3 +117,42 @@
         }
     }
 */
+
+
+    // fn scan_range (&self, rp: &RangePorts, tx: Sender<u16>) {
+        // for i in 0..self.threads {
+            // let tx = tx.clone();
+            // let self_clone = self.clone();
+            // let rp_clone = rp.clone();
+            // thread::spawn(move|| {
+                // Scanner::connect_host_range(
+                    // tx, self_clone.address, 
+                    // rp_clone.get_low(), rp_clone.get_high(),
+                    // self_clone.threads, i
+                // );
+            // });
+        // }
+    // }
+
+    // fn connect_host_range (tx: Sender<u16>, addr: Ipv4Addr, start: u16, end: u16, threads: u8, position: u8) {
+        // let mut port = start + position as u16;
+
+        // loop {
+            // match TcpStream::connect_timeout(
+                // &SocketAddr::new(IpAddr::V4(addr), port), Duration::from_millis(10)
+                // ) {
+                    // Ok(_) => {
+                        // println!("- {}", port);
+                        // tx.send(port).unwrap();
+                    // },
+                    // Err(_) => {}
+            // };
+
+            // if end - port <= threads as u16 {
+                // break;
+            // }
+            // port += threads as u16;
+        // }
+    // }
+
+

@@ -96,13 +96,13 @@ impl Scanner {
 
         // Calculate number of threads to use for each port segment
         let mut total_jobs: u16 = 0;
-        let port_chunk = ports_to_scan as f32 / threads as f32;
+        let port_chunk = (ports_to_scan as f32 / threads as f32).ceil() as u16;
         for rng_prt in range_ports.iter_mut() {
-            let t = (rng_prt.get_num() as f32 / port_chunk).ceil() as u8;
+            let t = (rng_prt.get_num() as f32 / port_chunk as f32).ceil() as u8;
             rng_prt.set_threads_to_use(t);
             total_jobs += t as u16;
         }
-        let indiv_jobs = (indiv_ports.len() as f32 / port_chunk).ceil() as u16;
+        let indiv_jobs = (indiv_ports.len() as f32 / port_chunk as f32).ceil() as u16;
         let range_jobs: u16 = total_jobs;
         total_jobs += indiv_jobs;
 
@@ -113,7 +113,7 @@ impl Scanner {
             range_ports,
             indiv_ports,
             ports_to_scan,
-            port_chunk: port_chunk.ceil() as u16,
+            port_chunk,
             indiv_jobs,
             range_jobs,
             total_jobs,
@@ -121,8 +121,6 @@ impl Scanner {
     }
 
 
-    // cargo r -- -p2-7,10-20,5-9,10-100 0.0.0.0
-    // CHANGE IN THE FUTURE
     fn parse_range_ports (ports: &[&str], indiv_ref: &mut HashSet<u16>) -> Vec<RangePorts> {
         let mut range_p: Vec<RangePorts> = vec![];
         let range_ref = &mut range_p;
@@ -173,16 +171,18 @@ impl Scanner {
             let self_ref = Arc::clone(&self_ref);
             pool.execute(move|| {
                 self_ref.scan_indiv(&indiv_slice, tx);
-                // println!("indv {} - {}", i, is);
             });
         }
 
         // Range ports section
-        for i in 0..self.range_jobs {
+        let mut position: u16 = 0;
+        let mut part: u16 = 0;
+        for _ in 0..self.range_jobs {
             let tx = tx.clone();
+            let range_slice = self.divide_range_ports(&mut position, &mut part);
+            let self_ref = Arc::clone(&self_ref);
             pool.execute(move|| {
-                tx.send(i).unwrap();
-                // println!("jobs {}", i);
+                self_ref.scan_range(range_slice, tx);
             });
         }
 
@@ -195,6 +195,7 @@ impl Scanner {
 
         println!("Open Ports for {}:\n{:?}", self.address, open_ports);
     }
+
 
     fn divide_indiv_ports (&self, iteration: u16) -> Vec<u16> {
         let pc: u16 = self.port_chunk;
@@ -227,41 +228,47 @@ impl Scanner {
         }
     }
 
-    // fn scan_range (&self, rp: &RangePorts, tx: Sender<u16>) {
-        // for i in 0..self.threads {
-            // let tx = tx.clone();
-            // let self_clone = self.clone();
-            // let rp_clone = rp.clone();
-            // thread::spawn(move|| {
-                // Scanner::connect_host_range(
-                    // tx, self_clone.address, 
-                    // rp_clone.get_low(), rp_clone.get_high(),
-                    // self_clone.threads, i
-                // );
-            // });
-        // }
-    // }
 
-    // fn connect_host_range (tx: Sender<u16>, addr: Ipv4Addr, start: u16, end: u16, threads: u8, position: u8) {
-        // let mut port = start + position as u16;
+    fn divide_range_ports (&self, position: &mut u16, part: &mut u16) -> RangePorts {
+        let pc: u16 = self.port_chunk;
+        let rng_prt = self.range_ports[*position as usize];
 
-        // loop {
-            // match TcpStream::connect_timeout(
-                // &SocketAddr::new(IpAddr::V4(addr), port), Duration::from_millis(10)
-                // ) {
-                    // Ok(_) => {
-                        // println!("- {}", port);
-                        // tx.send(port).unwrap();
-                    // },
-                    // Err(_) => {}
-            // };
+        if rng_prt.get_threads_to_use() == 1 {  // This range port just need a single thread
+            println!("POSITION BLOCK - {}", *position);
+            *position += 1;
+            rng_prt
+        } else {                                // This range port need multiple threads
+            println!("PART SPLIT     - {} - {}", *position, part);
+            let low = rng_prt.get_low() + *part * pc;
+            let mut high = (rng_prt.get_low() as u32) + ((*part + 1) as u32) * (pc as u32) - 1;
 
-            // if end - port <= threads as u16 {
-                // break;
-            // }
-            // port += threads as u16;
-        // }
-    // }
+            if *part == (rng_prt.get_threads_to_use() - 1) as u16 { // Last range port's part
+                *position += 1;
+                *part = 0;
+                high = rng_prt.get_high() as u32;
+            } else {                                                // Middle range port's parts
+                *part += 1;
+            }
+
+            let tmp = RangePorts::new(low, high as u16);
+            println!("{:?}", tmp);
+            tmp
+        }
+    }
+
+    fn scan_range (&self, rng_prt: RangePorts, tx: Sender<u16>) {
+        for port in rng_prt.get_low()..=rng_prt.get_high() {
+            match TcpStream::connect_timeout(
+                &SocketAddr::new(IpAddr::V4(self.address), port), Duration::from_millis(10)
+                ) {
+                    Ok(_) => {
+                        println!("- {}", port);
+                        tx.send(port).unwrap();
+                    },
+                    Err(_) => {}
+            };
+        }
+    }
 
 }
 
