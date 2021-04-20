@@ -164,7 +164,6 @@ impl Scanner {
         let n_workers = self.total_threads as usize;
         // let n_jobs = self.total_jobs;
         let pool = ThreadPool::new(n_workers);
-        // let mut position: u16 = 0;
         let self_ref = Arc::new(self.clone());
 
         // Individual ports section
@@ -243,27 +242,6 @@ impl Scanner {
         // }
     // }
 
-    // fn scan_list (sc: Arc<Self>, tx: Sender<u16>) {
-        // // let divide = ((sc.port_list.len() as f32) / sc.threads as f32).floor() as usize;
-        // // let divide = ((sc.port_list.len() as f32) / sc.threads as f32).ceil() as usize;
-        // let mut slices: Vec<Vec<u16>> = vec![Vec::new(); sc.threads as usize];
-
-        // for i in 0..sc.port_list.len() {
-            // let port = sc.port_list[i];
-            // slices[i % sc.threads as usize].push(port);
-        // }
-
-        // for slice in slices {
-            // let tx = tx.clone();
-            // let sc_clone = Arc::clone(&sc);
-            // thread::spawn(move|| {
-                // Scanner::connect_host_list(
-                    // tx, sc_clone.address, &slice
-                // );
-            // });
-        // }
-    // }
-
     // fn connect_host_range (tx: Sender<u16>, addr: Ipv4Addr, start: u16, end: u16, threads: u8, position: u8) {
         // let mut port = start + position as u16;
 
@@ -282,20 +260,6 @@ impl Scanner {
                 // break;
             // }
             // port += threads as u16;
-        // }
-    // }
-
-    // fn connect_host_list (tx: Sender<u16>, addr: Ipv4Addr, port_slice: &[u16]) {
-        // for port in port_slice {
-            // match TcpStream::connect_timeout(
-                // &SocketAddr::new(IpAddr::V4(addr), *port), Duration::from_millis(10)
-                // ) {
-                    // Ok(_) => {
-                        // println!("- {}", *port);
-                        // tx.send(*port).unwrap();
-                    // },
-                    // Err(_) => {},
-            // }
         // }
     // }
 
