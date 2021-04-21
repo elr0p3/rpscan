@@ -1,7 +1,7 @@
-name: sniff_port
+name: rpscan
 version: "0.1.0"
 author: r0p3 <mail>
-about: Sniff open ports
+about: Scans the open ports of a remote device
 args:
     - address:
         # short: a
@@ -25,32 +25,26 @@ args:
         long: ports
         takes_value: true
         value_name: PORTS
-        default_value: "1-65535"
+        default_value: "1-1024"
         allow_hyphen_values: true
         use_delimiter: true
         value_delimiter: ","
         help: Ports to scan
+    - timeout:
+        short: m
+        long: timeout
+        takes_value: true
+        value_name: TIMEOUT
+        default_value: "10"
+        help: The time to wait for a port response, in milliseconds
+    - verbose:
+        short: v
+        long: verbose
+        multiple: true
+        help: Display ports as soon as they are discovered
+    - outfile:
+        short: o
+        takes_value: true
+        value_name: OUTFILE
+        help: Generates a file with the information collected, in the indicated format
 
-
-# fn main() {
-    # let yaml = load_yaml!("../files/input_params.yml");
-    # let app = App::from_yaml(yaml)
-        # .arg(
-            # clap::Arg::with_name("nuevo")
-                # .short("n")
-                # .takes_value(true)
-                # // .last(true)
-                # .use_delimiter(true)
-                # .value_delimiter(",")
-            # )
-        # .get_matches();
-    # println!("Address: {}", app.value_of("address").unwrap());
-    # println!("Threads: {}", app.value_of("threads").unwrap());
-    # println!("Ports: {}", app.value_of("ports").unwrap());
-    # println!("Ports: {:?}", app.values_of("ports").unwrap().collect::<Vec<&str>>());
-
-    # // println!("Nuevo: {:?}", app.values_of("nuevo").unwrap().collect::<Vec<&str>>());
-
-    # // println!("addr: {:?}", app.subcommand_matches("address").unwrap());
-    # println!("MARIKONG");
-# }

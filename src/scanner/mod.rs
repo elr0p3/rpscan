@@ -50,13 +50,16 @@ pub struct Scanner {
     indiv_jobs: u16,
     range_jobs: u16,
     total_jobs: u16,
+
+    timeout: u64,
+    verbose: bool,
 }
 
 
 impl Scanner {
 
     /// New instance  
-    pub fn new (address: &str, mut threads: u8, ports: &[&str]) -> Result<Self, Box<dyn Error>> {
+    pub fn new (address: &str, mut threads: u8, ports: &[&str], timeout: u64, verbose: u8) -> Result<Self, Box<dyn Error>> {
 
         // Parse Address
         let address = if address == LOCALHOST {
@@ -117,6 +120,8 @@ impl Scanner {
             indiv_jobs,
             range_jobs,
             total_jobs,
+            timeout,
+            verbose: if verbose != 0 { true } else { false },
         })
     }
 
@@ -202,25 +207,25 @@ impl Scanner {
         let actual = (pc * iteration) as usize;
 
          if iteration == self.indiv_jobs - 1 {  // Last iteration
-            let tmp = Vec::from(&self.indiv_ports[actual..]);
-            println!("LAST   --- {:?}", tmp);
-            tmp
+            Vec::from(&self.indiv_ports[actual..])
 
         } else {                                // Middle iteration
             let next = (pc * (iteration + 1)) as usize;
-            let tmp = Vec::from(&self.indiv_ports[actual..next]);
-            println!("MIDDLE --- {:?}", tmp);
-            tmp
+            Vec::from(&self.indiv_ports[actual..next])
         }
     }
 
     fn scan_indiv (&self, port_list: &[u16], tx: Sender<u16>) {
         for port in port_list {
             match TcpStream::connect_timeout(
-                &SocketAddr::new(IpAddr::V4(self.address), *port), Duration::from_millis(10)
+                &SocketAddr::new(
+                    IpAddr::V4(self.address), *port),
+                    Duration::from_millis(self.timeout)
                 ) {
                     Ok(_) => {
-                        println!("- {}", *port);
+                        if self.verbose {
+                            println!("- {}", *port);
+                        }
                         tx.send(*port).unwrap();
                     },
                     Err(_) => {},
@@ -234,11 +239,9 @@ impl Scanner {
         let rng_prt = self.range_ports[*position as usize];
 
         if rng_prt.get_threads_to_use() == 1 {  // This range port just need a single thread
-            println!("POSITION BLOCK - {}", *position);
             *position += 1;
             rng_prt
         } else {                                // This range port need multiple threads
-            println!("PART SPLIT     - {} - {}", *position, part);
             let low = rng_prt.get_low() + *part * pc;
             let mut high = (rng_prt.get_low() as u32) + ((*part + 1) as u32) * (pc as u32) - 1;
 
@@ -250,19 +253,21 @@ impl Scanner {
                 *part += 1;
             }
 
-            let tmp = RangePorts::new(low, high as u16);
-            println!("{:?}", tmp);
-            tmp
+            RangePorts::new(low, high as u16)
         }
     }
 
     fn scan_range (&self, rng_prt: RangePorts, tx: Sender<u16>) {
         for port in rng_prt.get_low()..=rng_prt.get_high() {
             match TcpStream::connect_timeout(
-                &SocketAddr::new(IpAddr::V4(self.address), port), Duration::from_millis(10)
+                &SocketAddr::new(
+                    IpAddr::V4(self.address), port),
+                    Duration::from_millis(self.timeout)
                 ) {
                     Ok(_) => {
-                        println!("- {}", port);
+                        if self.verbose {
+                            println!("- {}", port);
+                        }
                         tx.send(port).unwrap();
                     },
                     Err(_) => {}

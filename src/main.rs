@@ -10,19 +10,19 @@ use scanner::Scanner;
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml).get_matches();
-    println!("Address: {}", app.value_of("address").unwrap());
-    println!("Threads: {}", app.value_of("threads").unwrap());
-    println!("Ports: {}", app.value_of("ports").unwrap());
-    println!("Ports: {:?}", app.values_of("ports").unwrap().collect::<Vec<&str>>());
 
-    // println!("addr: {:?}", app.subcommand_matches("address").unwrap());
-
-
+    // Scanner arguments
     let address = app.value_of("address").unwrap();
     let threads = app.value_of("threads").unwrap().parse::<u8>().unwrap_or(num_cpus::get_physical() as u8);
-    let ports = app.values_of("ports").unwrap().collect::<Vec<&str>>();
+    let ports   = app.values_of("ports").unwrap().collect::<Vec<&str>>();
+    let timeout = app.value_of("timeout").unwrap().parse::<u64>().unwrap_or(10);
+    let verbose = app.occurrences_of("verbose") as u8;
 
-    let scanner = Scanner::new(address, threads, &ports).unwrap();
+    // Output arguments
+    let _outfile = app.value_of("outfile").unwrap_or("");
+
+
+    let scanner = Scanner::new(address, threads, &ports, timeout, verbose).unwrap();
     println!("{:#?}", scanner);
 
     scanner.scan();

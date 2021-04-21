@@ -35,8 +35,10 @@ impl FromStr for RangePorts {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut ports = String::new();
-
-        if s.starts_with(SEP) {
+        
+        if s == SEP {
+            ports += "1-65535";
+        } else if s.starts_with(SEP) {
             ports += "1";
             ports += s;
         } else if s.ends_with(SEP) {
