@@ -47,4 +47,18 @@ args:
         takes_value: true
         value_name: OUTFILE
         help: Generates a file with the information collected, in the indicated format
-
+    # - scanopt:
+        # short: s
+        # long: scanopt
+        # takes_value: true
+        # value_name: SCAN_OPT
+        # default_value: "T"
+        # help: Specifies the type of scan to be performed
+    - waitime:
+        short: w
+        long: wait
+        takes_value: true
+        value_name: WAIT_TIME
+        default_value: "0"
+        # help: Waiting time between packages sending
+        long_help: "Waiting time between packages sending\nIt only waits between packages of the same thread,\nnot those of different threads"
