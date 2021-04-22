@@ -162,7 +162,7 @@ impl Scanner {
 
 
     /// Scan method
-    pub fn scan (&self) {
+    pub fn scan (&self) -> (IpAddr, Vec<u16>) {
         let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
         let n_workers = self.total_threads as usize;
         // let n_jobs = self.total_jobs;
@@ -197,8 +197,12 @@ impl Scanner {
         for port in rx {
             open_ports.insert(port);
         }
-
-        println!("Open Ports for {}:\n{:?}", self.address, open_ports);
+        (IpAddr::from(self.address),
+        open_ports.iter()
+            .map(|p| *p)
+            .sorted()
+            .collect::<Vec<u16>>()
+        )
     }
 
 

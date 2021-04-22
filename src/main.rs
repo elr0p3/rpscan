@@ -3,12 +3,15 @@ use clap::{App, load_yaml};
 use serde_json;
 use num_cpus;
 
+
 mod scanner;
 use scanner::Scanner;
 // use scanner::error::ScannerError;
-
-mod outfile;
-use outfile::Outfile;
+mod output;
+use output::{
+    Output,
+    outfile::Outfile,
+};
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
@@ -22,16 +25,21 @@ fn main() {
     let verbose = app.occurrences_of("verbose") as u8;
 
     // Output arguments
-    let outfile = app.value_of("outfile").unwrap_or("");
+    let outfile_type = app.value_of("outfile").unwrap_or("\0");
 
-    
-    let out: Outfile;
-    if outfile != "" {
-        out = Outfile::new(outfile.as_bytes()).unwrap();
-    }
+    // Check that the outfile mode is correct
+    let out_type = Outfile::is_valid_mode(outfile_type.as_bytes());
 
-    let scanner = Scanner::new(address, threads, &ports, timeout, verbose).unwrap();
+    // Start everything related to the scanner
+    let scanner = Scanner::new(
+        address, threads, &ports, timeout, verbose
+    ).unwrap();
     println!("{:#?}", scanner);
+    let (address, oports) = scanner.scan();
 
-    scanner.scan();
+    // Once scan is done, display result information to the user
+    let output = Output::new(&address, &oports);
+    if let Some(out) = out_type {
+        let outfile = Outfile::new(&output, out);
+    }
 }
