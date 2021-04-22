@@ -5,7 +5,10 @@ use num_cpus;
 
 mod scanner;
 use scanner::Scanner;
-// use scanner::scerror::ScannerError;
+// use scanner::error::ScannerError;
+
+mod outfile;
+use outfile::Outfile;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
@@ -19,8 +22,13 @@ fn main() {
     let verbose = app.occurrences_of("verbose") as u8;
 
     // Output arguments
-    let _outfile = app.value_of("outfile").unwrap_or("");
+    let outfile = app.value_of("outfile").unwrap_or("");
 
+    
+    let out: Outfile;
+    if outfile != "" {
+        out = Outfile::new(outfile.as_bytes()).unwrap();
+    }
 
     let scanner = Scanner::new(address, threads, &ports, timeout, verbose).unwrap();
     println!("{:#?}", scanner);

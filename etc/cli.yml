@@ -3,6 +3,12 @@ version: "0.1.0"
 author: r0p3 <mail>
 about: Scans the open ports of a remote device
 args:
+    - verbose:
+        short: v
+        long: verbose
+        multiple: true
+        help: Display ports as soon as they are discovered
+
     - address:
         # short: a
         # long: address
@@ -37,21 +43,16 @@ args:
         value_name: TIMEOUT
         default_value: "10"
         help: The time to wait for a port response, in milliseconds
-    - verbose:
-        short: v
-        long: verbose
-        multiple: true
-        help: Display ports as soon as they are discovered
     - outfile:
         short: o
         takes_value: true
         value_name: OUTFILE
         help: Generates a file with the information collected, in the indicated format
-    # - scanopt:
+    # - scanmode:
         # short: s
-        # long: scanopt
+        # long: scanmode
         # takes_value: true
-        # value_name: SCAN_OPT
+        # value_name: SCAN_MODE
         # default_value: "T"
         # help: Specifies the type of scan to be performed
     - waitime:
