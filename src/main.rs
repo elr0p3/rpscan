@@ -3,6 +3,10 @@ use clap::{App, load_yaml};
 use serde_json;
 use num_cpus;
 
+use std::{
+    process,
+    collections::HashMap,
+};
 
 mod scanner;
 use scanner::Scanner;
@@ -10,12 +14,17 @@ use scanner::Scanner;
 mod output;
 use output::{
     Output,
-    outfile::Outfile,
+    outfile::{
+        self,
+        Outfile,
+    }
 };
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml).get_matches();
+    // assert!(app.is_present("outfile_grepable"));
+    // assert!(app.is_present("outfile_normal"));
 
     // Scanner arguments
     let address = app.value_of("address").unwrap();
@@ -24,22 +33,31 @@ fn main() {
     let timeout = app.value_of("timeout").unwrap().parse::<u64>().unwrap_or(10);
     let verbose = app.occurrences_of("verbose") as u8;
 
-    // Output arguments
-    let outfile_type = app.value_of("outfile").unwrap_or("\0");
-
-    // Check that the outfile mode is correct
-    let out_type = Outfile::is_valid_mode(outfile_type.as_bytes());
+    // Output arguments, and validate the introduced file is correct
+    let mut outf_content = HashMap::new();
+    for (i, of) in outfile::OUTF_NAMES.iter().enumerate() {
+        if let Some(value) = app.value_of(of) {
+            if Outfile::is_valid_file(value) {
+                outf_content.insert(outfile::OUTF_SHORT[i], value);
+            } else {
+                eprintln!("ERROR! The file '{}' already exists", value);
+                process::exit(1);
+            }
+        }
+    }
+    println!("{:?}", outf_content);
 
     // Start everything related to the scanner
     let scanner = Scanner::new(
         address, threads, &ports, timeout, verbose
     ).unwrap();
     println!("{:#?}", scanner);
-    let (address, oports) = scanner.scan();
+    let scanned = scanner.scan();
 
     // Once scan is done, display result information to the user
-    let output = Output::new(&address, &oports);
-    if let Some(out) = out_type {
-        let outfile = Outfile::new(&output, out);
-    }
+    let output = Output::new(&scanned).unwrap();
+    println!("{}", output.string_port_result());
+    // for (mode, path) in outf_content.iter() {
+        // let outf = Outfile::new(&output, *mode, path);
+    // }
 }

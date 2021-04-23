@@ -2,6 +2,12 @@ name: rpscan
 version: "0.1.0"
 author: r0p3 <mail>
 about: Scans the open ports of a remote device
+# group:
+    # - with_name: output
+    # - args: ["outfile_normal", "outfile_grepable"]
+    # - required: true
+    # - help_group: ""
+# template: "{bin} ({version}) - {usage}"
 args:
     - verbose:
         short: v
@@ -43,18 +49,6 @@ args:
         value_name: TIMEOUT
         default_value: "10"
         help: The time to wait for a port response, in milliseconds
-    - outfile:
-        short: o
-        takes_value: true
-        value_name: OUTFILE
-        help: Generates a file with the information collected, in the indicated format
-    # - scanmode:
-        # short: s
-        # long: scanmode
-        # takes_value: true
-        # value_name: SCAN_MODE
-        # default_value: "T"
-        # help: Specifies the type of scan to be performed
     - waitime:
         short: w
         long: wait
@@ -63,3 +57,31 @@ args:
         default_value: "0"
         # help: Waiting time between packages sending
         long_help: "Waiting time between packages sending\nIt only waits between packages of the same thread,\nnot those of different threads"
+
+    - outfile_normal:
+        long: oN
+        takes_value: true
+        max_values: 2
+        value_name: OUTFILE
+        long_help: Generates a NORMAL output file with the information collected
+        # overrides_with_all: ["outfile_grepable"]
+        # overrides_with: "outfile_grepable"
+        # group: outfile
+    - outfile_grepable:
+        long: oG
+        takes_value: true
+        max_values: 2
+        value_name: OUTFILE
+        long_help: Generates a GREPABLE output file with the information collected
+        # overrides_with_all: ["outfile_normal"]
+        # overrides_with: "outfile_normal"
+        # group: outfile
+
+    # - scanmode:
+        # short: s
+        # long: scanmode
+        # takes_value: true
+        # value_name: SCAN_MODE
+        # default_value: "T"
+        # help: Specifies the type of scan to be performed
+

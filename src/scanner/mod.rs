@@ -1,19 +1,10 @@
-extern crate num_cpus;
-extern crate itertools;
+// Extern crates
 use itertools::Itertools;
 use threadpool::ThreadPool;
 
-pub mod range_port;
-use range_port::RangePorts;
-
-// pub mod scerror;
-
-#[allow(unused_imports)]
+// Standard library imports
 use std::{
-    collections::{
-        HashSet,
-        HashMap,
-    },
+    collections::HashSet,
     error::Error,
     net::{
         IpAddr,
@@ -28,10 +19,16 @@ use std::{
             Receiver
         },
     },
-    thread,
-    time::Duration,
+    time::{
+        Instant,
+        Duration,
+    }
 };
 
+// Crate modules
+pub mod range_port;
+use range_port::RangePorts;
+// pub mod scerror;
 
 const LOCALHOST: &'static str = "localhost";
 
@@ -53,6 +50,14 @@ pub struct Scanner {
 
     timeout: u64,
     verbose: bool,
+}
+
+#[derive(Debug)]
+pub struct Scanned {
+    address: IpAddr,
+    ports_scanned: u16,
+    ports: Vec<u16>,
+    duration: Duration,
 }
 
 
@@ -162,7 +167,9 @@ impl Scanner {
 
 
     /// Scan method
-    pub fn scan (&self) -> (IpAddr, Vec<u16>) {
+    pub fn scan (&self) -> Scanned {
+        let start = Instant::now();
+
         let (tx, rx): (Sender<u16>, Receiver<u16>) = mpsc::channel();
         let n_workers = self.total_threads as usize;
         // let n_jobs = self.total_jobs;
@@ -197,12 +204,16 @@ impl Scanner {
         for port in rx {
             open_ports.insert(port);
         }
-        (IpAddr::from(self.address),
-        open_ports.iter()
-            .map(|p| *p)
-            .sorted()
-            .collect::<Vec<u16>>()
-        )
+        
+        Scanned {
+            address: IpAddr::from(self.address),
+            ports_scanned: self.ports_to_scan,
+            ports: open_ports.iter()
+                .map(|p| *p)
+                .sorted()
+                .collect::<Vec<u16>>(),
+            duration: start.elapsed(),
+        }
     }
 
 
@@ -279,6 +290,26 @@ impl Scanner {
         }
     }
 
+}
+
+
+impl Scanned {
+
+    pub fn get_addr (&self) -> &IpAddr {
+        &self.address
+    }
+
+    pub fn get_ports_scanned (&self) -> u16 {
+        self.ports_scanned
+    }
+
+    pub fn get_ports (&self) -> &[u16] {
+        &self.ports
+    }
+
+    pub fn get_duration (&self) -> &Duration {
+        &self.duration
+    }
 }
 
 
