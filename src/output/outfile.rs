@@ -1,5 +1,8 @@
-use std::error::Error;
-use std::path::Path;
+use std::{
+    error::Error,
+    path::Path,
+    fs,
+};
 
 
 const NUM_FILE_TYPES: usize = 2;
@@ -31,5 +34,16 @@ impl<'a> Outfile<'a> {
 
     pub fn is_valid_file (name: &str) -> bool {
         !Path::new(name).exists()
+    }
+
+    pub fn write_results (&self) -> Result<(), Box<dyn Error>> {
+        match self.mode {
+            b'N' => {
+                fs::write(self.path, self.output.string_port_result())?;
+                Ok(())
+            },
+            b'G' => Ok(()),
+            _ => Ok(()),
+        }
     }
 }

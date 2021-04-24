@@ -50,7 +50,7 @@ impl<'a> Output<'a> {
         let closed_ports = u16::MAX - ports.len() as u16;
         let open_ports = ports.len();
         let mut result = format!(
-            "\nPort result for '{}':\n Closed: {}\n Open: {}\n\n",
+            "\nScan result for '{}':\n Closed: {}\n   Open: {}\n\n Ports' List:\n",
             self.scanned.get_addr(), closed_ports, open_ports
         );
 

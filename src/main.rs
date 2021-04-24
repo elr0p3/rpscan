@@ -23,8 +23,6 @@ use output::{
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml).get_matches();
-    // assert!(app.is_present("outfile_grepable"));
-    // assert!(app.is_present("outfile_normal"));
 
     // Scanner arguments
     let address = app.value_of("address").unwrap();
@@ -57,7 +55,8 @@ fn main() {
     // Once scan is done, display result information to the user
     let output = Output::new(&scanned).unwrap();
     println!("{}", output.string_port_result());
-    // for (mode, path) in outf_content.iter() {
-        // let outf = Outfile::new(&output, *mode, path);
-    // }
+    for (mode, path) in outf_content.iter() {
+        let outf = Outfile::new(&output, *mode, path);
+        outf.write_results().unwrap();
+    }
 }
